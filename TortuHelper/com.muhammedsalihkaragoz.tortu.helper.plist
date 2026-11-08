@@ -1,0 +1,21 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+<plist version="1.0">
+<dict>
+    <key>Label</key>
+    <string>com.muhammedsalihkaragoz.tortu.helper</string>
+    <key>BundleProgram</key>
+    <string>Contents/MacOS/TortuHelper</string>
+    <key>MachServices</key>
+    <dict>
+        <key>com.muhammedsalihkaragoz.tortu.helper</key>
+        <true/>
+    </dict>
+    <!-- Ties the daemon to the app in System Settings, so the user sees what
+         installed it and can turn it off in one place. -->
+    <key>AssociatedBundleIdentifiers</key>
+    <array>
+        <string>com.muhammedsalihkaragoz.tortu</string>
+    </array>
+</dict>
+</plist>

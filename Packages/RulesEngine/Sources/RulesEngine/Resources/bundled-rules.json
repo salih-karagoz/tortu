@@ -1,0 +1,579 @@
+{
+  "version": 1,
+  "rules": [
+    {
+      "id": "xcode.derived-data",
+      "name": {
+        "en": "Xcode DerivedData",
+        "tr": "Xcode DerivedData"
+      },
+      "category": "developer",
+      "paths": [
+        "~/Library/Developer/Xcode/DerivedData/*"
+      ],
+      "strategy": "deleteAll",
+      "requiresRoot": false,
+      "regrows": true,
+      "cost": {
+        "en": "The next Xcode build compiles from scratch",
+        "tr": "Sonraki Xcode build'i sıfırdan derlenir"
+      },
+      "blockedByProcesses": [
+        "com.apple.dt.Xcode"
+      ]
+    },
+    {
+      "id": "xcode.device-support",
+      "name": {
+        "en": "iOS device symbols",
+        "tr": "iOS cihaz sembolleri"
+      },
+      "category": "developer",
+      "paths": [
+        "~/Library/Developer/Xcode/iOS DeviceSupport/*"
+      ],
+      "strategy": "deleteAll",
+      "requiresRoot": false,
+      "regrows": true,
+      "cost": {
+        "en": "Xcode reprocesses symbols the next time the device is connected, which takes a few minutes",
+        "tr": "Xcode cihazı bir sonraki bağlayışında sembolleri yeniden işler, birkaç dakika sürer"
+      },
+      "blockedByProcesses": [
+        "com.apple.dt.Xcode"
+      ]
+    },
+    {
+      "id": "flutter.build-cache",
+      "name": {
+        "en": "Flutter build cache",
+        "tr": "Flutter build önbelleği"
+      },
+      "category": "developer",
+      "paths": [
+        "~/**/.dart_tool/flutter_build/*"
+      ],
+      "strategy": {
+        "keepNewest": 2
+      },
+      "requiresRoot": false,
+      "regrows": true,
+      "cost": {
+        "en": "Older build configurations recompile; the two most recent stay warm",
+        "tr": "Eski build konfigürasyonları yeniden derlenir; en yeni ikisi sıcak kalır"
+      }
+    },
+    {
+      "id": "dart.analysis-server",
+      "name": {
+        "en": "Dart analysis server cache",
+        "tr": "Dart analiz sunucusu önbelleği"
+      },
+      "category": "developer",
+      "paths": [
+        "~/.dartServer"
+      ],
+      "strategy": "deleteAll",
+      "requiresRoot": false,
+      "regrows": true,
+      "cost": {
+        "en": "The IDE rebuilds its index on the next Dart project it opens",
+        "tr": "IDE açtığı ilk Dart projesinde indeksini yeniden kurar"
+      }
+    },
+    {
+      "id": "gradle.caches",
+      "name": {
+        "en": "Gradle cache",
+        "tr": "Gradle önbelleği"
+      },
+      "category": "developer",
+      "paths": [
+        "~/.gradle/caches"
+      ],
+      "strategy": "deleteAll",
+      "requiresRoot": false,
+      "regrows": true,
+      "cost": {
+        "en": "The next Gradle build downloads its dependencies again",
+        "tr": "Sonraki Gradle build'i bağımlılıkları yeniden indirir"
+      }
+    },
+    {
+      "id": "maven.repository",
+      "name": {
+        "en": "Maven repository",
+        "tr": "Maven deposu"
+      },
+      "category": "developer",
+      "paths": [
+        "~/.m2/repository"
+      ],
+      "strategy": "deleteAll",
+      "requiresRoot": false,
+      "regrows": true,
+      "cost": {
+        "en": "The next Maven build downloads its dependencies again",
+        "tr": "Sonraki Maven build'i bağımlılıkları yeniden indirir"
+      }
+    },
+    {
+      "id": "npm.cache",
+      "name": {
+        "en": "npm cache",
+        "tr": "npm önbelleği"
+      },
+      "category": "developer",
+      "paths": [
+        "~/.npm/_cacache",
+        "~/.npm/_npx"
+      ],
+      "strategy": "deleteAll",
+      "requiresRoot": false,
+      "regrows": true,
+      "cost": {
+        "en": "The next install fetches packages from the network instead of from disk",
+        "tr": "Sonraki kurulum paketleri diskten değil ağdan çeker"
+      }
+    },
+    {
+      "id": "node.modules",
+      "name": {
+        "en": "node_modules directories",
+        "tr": "node_modules dizinleri"
+      },
+      "category": "developer",
+      "paths": [
+        "~/**/node_modules"
+      ],
+      "strategy": "deleteAll",
+      "requiresRoot": false,
+      "regrows": true,
+      "cost": {
+        "en": "Each project needs an install before it builds again",
+        "tr": "Her proje tekrar derlenmeden önce kurulum ister"
+      }
+    },
+    {
+      "id": "go.build-cache",
+      "name": {
+        "en": "Go build cache",
+        "tr": "Go build önbelleği"
+      },
+      "category": "developer",
+      "paths": [
+        "~/Library/Caches/go-build/*"
+      ],
+      "strategy": "deleteAll",
+      "requiresRoot": false,
+      "regrows": true,
+      "cost": {
+        "en": "The next Go build is slower",
+        "tr": "Sonraki Go build'i yavaşlar"
+      }
+    },
+    {
+      "id": "pub.cache",
+      "name": {
+        "en": "Dart pub cache",
+        "tr": "Dart pub önbelleği"
+      },
+      "category": "developer",
+      "paths": [
+        "~/.pub-cache/hosted"
+      ],
+      "strategy": "deleteAll",
+      "requiresRoot": false,
+      "regrows": true,
+      "cost": {
+        "en": "Dart packages are downloaded again on the next pub get",
+        "tr": "Dart paketleri sonraki pub get'te yeniden iner"
+      }
+    },
+    {
+      "id": "jetbrains.caches",
+      "name": {
+        "en": "JetBrains IDE caches",
+        "tr": "JetBrains IDE önbellekleri"
+      },
+      "category": "developer",
+      "paths": [
+        "~/Library/Caches/JetBrains/*"
+      ],
+      "strategy": "deleteAll",
+      "requiresRoot": false,
+      "regrows": true,
+      "cost": {
+        "en": "The IDE reindexes on next launch, which takes minutes on a large project",
+        "tr": "IDE açılışta yeniden indeksler, büyük projede birkaç dakika sürer"
+      },
+      "blockedByProcesses": [
+        "com.jetbrains.intellij",
+        "com.jetbrains.WebStorm",
+        "com.jetbrains.rider",
+        "com.jetbrains.pycharm",
+        "com.jetbrains.datagrip",
+        "com.google.android.studio"
+      ]
+    },
+    {
+      "id": "homebrew.cache",
+      "name": {
+        "en": "Homebrew download cache",
+        "tr": "Homebrew indirme önbelleği"
+      },
+      "category": "developer",
+      "paths": [
+        "~/Library/Caches/Homebrew/*"
+      ],
+      "strategy": "deleteAll",
+      "requiresRoot": false,
+      "regrows": true,
+      "cost": {
+        "en": "Formulae are downloaded again when reinstalled",
+        "tr": "Formüller yeniden kurulduğunda tekrar iner"
+      }
+    },
+    {
+      "id": "chrome.ondevice-model",
+      "name": {
+        "en": "Chrome on-device model",
+        "tr": "Chrome yerel modeli"
+      },
+      "category": "browser",
+      "paths": [
+        "~/Library/Application Support/Google/Chrome/OptGuideOnDeviceModel"
+      ],
+      "strategy": "deleteAll",
+      "requiresRoot": false,
+      "regrows": true,
+      "cost": {
+        "en": "Chrome downloads the model again if it needs it",
+        "tr": "Chrome ihtiyaç duyarsa modeli tekrar indirir"
+      },
+      "blockedByProcesses": [
+        "com.google.Chrome"
+      ]
+    },
+    {
+      "id": "coresimulator.dyld-cache",
+      "name": {
+        "en": "Simulator shared cache",
+        "tr": "Simülatör paylaşılan önbelleği"
+      },
+      "category": "developer",
+      "paths": [
+        "/Library/Developer/CoreSimulator/Caches/dyld/*"
+      ],
+      "strategy": "deleteAll",
+      "requiresRoot": true,
+      "regrows": true,
+      "cost": {
+        "en": "Rebuilt the first time a simulator boots",
+        "tr": "İlk simülatör açılışında yeniden oluşturulur"
+      },
+      "blockedByProcesses": [
+        "com.apple.dt.Xcode"
+      ]
+    },
+    {
+      "id": "safari.cache",
+      "name": {
+        "en": "Safari cache",
+        "tr": "Safari önbelleği"
+      },
+      "category": "browser",
+      "paths": [
+        "~/Library/Caches/com.apple.Safari/*"
+      ],
+      "strategy": "deleteAll",
+      "requiresRoot": false,
+      "regrows": true,
+      "cost": {
+        "en": "Pages load from the network once before they are cached again",
+        "tr": "Sayfalar yeniden önbelleğe alınana kadar bir kez ağdan yüklenir"
+      },
+      "blockedByProcesses": [
+        "com.apple.Safari"
+      ]
+    },
+    {
+      "id": "chrome.cache",
+      "name": {
+        "en": "Chrome cache",
+        "tr": "Chrome önbelleği"
+      },
+      "category": "browser",
+      "paths": [
+        "~/Library/Caches/Google/Chrome/*"
+      ],
+      "strategy": "deleteAll",
+      "requiresRoot": false,
+      "regrows": true,
+      "cost": {
+        "en": "Pages load from the network once before they are cached again",
+        "tr": "Sayfalar yeniden önbelleğe alınana kadar bir kez ağdan yüklenir"
+      },
+      "blockedByProcesses": [
+        "com.google.Chrome"
+      ]
+    },
+    {
+      "id": "firefox.cache",
+      "name": {
+        "en": "Firefox cache",
+        "tr": "Firefox önbelleği"
+      },
+      "category": "browser",
+      "paths": [
+        "~/Library/Caches/Firefox/Profiles/*"
+      ],
+      "strategy": "deleteAll",
+      "requiresRoot": false,
+      "regrows": true,
+      "cost": {
+        "en": "Pages load from the network once before they are cached again",
+        "tr": "Sayfalar yeniden önbelleğe alınana kadar bir kez ağdan yüklenir"
+      },
+      "blockedByProcesses": [
+        "org.mozilla.firefox"
+      ]
+    },
+    {
+      "id": "edge.cache",
+      "name": {
+        "en": "Edge cache",
+        "tr": "Edge önbelleği"
+      },
+      "category": "browser",
+      "paths": [
+        "~/Library/Caches/Microsoft Edge/*"
+      ],
+      "strategy": "deleteAll",
+      "requiresRoot": false,
+      "regrows": true,
+      "cost": {
+        "en": "Pages load from the network once before they are cached again",
+        "tr": "Sayfalar yeniden önbelleğe alınana kadar bir kez ağdan yüklenir"
+      },
+      "blockedByProcesses": [
+        "com.microsoft.edgemac"
+      ]
+    },
+    {
+      "id": "arc.cache",
+      "name": {
+        "en": "Arc cache",
+        "tr": "Arc önbelleği"
+      },
+      "category": "browser",
+      "paths": [
+        "~/Library/Caches/company.thebrowser.Browser/*"
+      ],
+      "strategy": "deleteAll",
+      "requiresRoot": false,
+      "regrows": true,
+      "cost": {
+        "en": "Pages load from the network once before they are cached again",
+        "tr": "Sayfalar yeniden önbelleğe alınana kadar bir kez ağdan yüklenir"
+      },
+      "blockedByProcesses": [
+        "company.thebrowser.Browser"
+      ]
+    },
+    {
+      "id": "quicklook.thumbnails",
+      "name": {
+        "en": "Quick Look thumbnails",
+        "tr": "Quick Look küçük resimleri"
+      },
+      "category": "system",
+      "paths": [
+        "~/Library/Caches/com.apple.QuickLook.thumbnailcache/*"
+      ],
+      "strategy": "deleteAll",
+      "requiresRoot": false,
+      "regrows": true,
+      "cost": {
+        "en": "Finder regenerates previews as you browse folders again",
+        "tr": "Finder, klasörlere tekrar göz attıkça önizlemeleri yeniden üretir"
+      }
+    },
+    {
+      "id": "spotify.cache",
+      "name": {
+        "en": "Spotify offline cache",
+        "tr": "Spotify çevrimdışı önbelleği"
+      },
+      "category": "media",
+      "paths": [
+        "~/Library/Caches/com.spotify.client/*"
+      ],
+      "strategy": "deleteAll",
+      "requiresRoot": false,
+      "regrows": true,
+      "cost": {
+        "en": "Downloaded tracks are fetched again when played",
+        "tr": "İndirilmiş parçalar çalınınca tekrar iner"
+      },
+      "blockedByProcesses": [
+        "com.spotify.client"
+      ]
+    },
+    {
+      "id": "slack.cache",
+      "name": {
+        "en": "Slack cache",
+        "tr": "Slack önbelleği"
+      },
+      "category": "other",
+      "paths": [
+        "~/Library/Application Support/Slack/Service Worker/CacheStorage/*",
+        "~/Library/Application Support/Slack/Cache/*"
+      ],
+      "strategy": "deleteAll",
+      "requiresRoot": false,
+      "regrows": true,
+      "cost": {
+        "en": "Slack reloads workspace assets on next launch",
+        "tr": "Slack bir sonraki açılışta çalışma alanı içeriğini yeniden yükler"
+      },
+      "blockedByProcesses": [
+        "com.tinyspeck.slackmacgap"
+      ]
+    },
+    {
+      "id": "mail.downloads",
+      "name": {
+        "en": "Mail attachment cache",
+        "tr": "Mail ek önbelleği"
+      },
+      "category": "mail",
+      "paths": [
+        "~/Library/Containers/com.apple.mail/Data/Library/Mail Downloads/*"
+      ],
+      "strategy": "deleteAll",
+      "requiresRoot": false,
+      "regrows": true,
+      "cost": {
+        "en": "Attachments you opened are downloaded again from the server. Anything you saved elsewhere is untouched",
+        "tr": "Açtığın ekler sunucudan tekrar iner. Başka yere kaydettiklerin etkilenmez"
+      },
+      "blockedByProcesses": [
+        "com.apple.mail"
+      ]
+    },
+    {
+      "id": "ios.devicesupport",
+      "name": {
+        "en": "Xcode watchOS and tvOS symbols",
+        "tr": "Xcode watchOS ve tvOS sembolleri"
+      },
+      "category": "developer",
+      "paths": [
+        "~/Library/Developer/Xcode/watchOS DeviceSupport/*",
+        "~/Library/Developer/Xcode/tvOS DeviceSupport/*"
+      ],
+      "strategy": "deleteAll",
+      "requiresRoot": false,
+      "regrows": true,
+      "cost": {
+        "en": "Xcode reprocesses symbols the next time such a device is connected",
+        "tr": "Xcode böyle bir cihaz bağlandığında sembolleri yeniden işler"
+      },
+      "blockedByProcesses": [
+        "com.apple.dt.Xcode"
+      ]
+    },
+    {
+      "id": "swiftpm.cache",
+      "name": {
+        "en": "Swift Package Manager cache",
+        "tr": "Swift Package Manager önbelleği"
+      },
+      "category": "developer",
+      "paths": [
+        "~/Library/Caches/org.swift.swiftpm/*"
+      ],
+      "strategy": "deleteAll",
+      "requiresRoot": false,
+      "regrows": true,
+      "cost": {
+        "en": "Packages are fetched again on the next resolve",
+        "tr": "Paketler bir sonraki çözümlemede tekrar iner"
+      }
+    },
+    {
+      "id": "carthage.cache",
+      "name": {
+        "en": "Carthage cache",
+        "tr": "Carthage önbelleği"
+      },
+      "category": "developer",
+      "paths": [
+        "~/Library/Caches/org.carthage.CarthageKit/*"
+      ],
+      "strategy": "deleteAll",
+      "requiresRoot": false,
+      "regrows": true,
+      "cost": {
+        "en": "Dependencies are rebuilt or re-downloaded",
+        "tr": "Bağımlılıklar yeniden derlenir ya da tekrar iner"
+      }
+    },
+    {
+      "id": "cocoapods.cache",
+      "name": {
+        "en": "CocoaPods cache",
+        "tr": "CocoaPods önbelleği"
+      },
+      "category": "developer",
+      "paths": [
+        "~/Library/Caches/CocoaPods/*"
+      ],
+      "strategy": "deleteAll",
+      "requiresRoot": false,
+      "regrows": true,
+      "cost": {
+        "en": "Pods are downloaded again on the next install",
+        "tr": "Pod'lar bir sonraki kurulumda tekrar iner"
+      }
+    },
+    {
+      "id": "yarn.cache",
+      "name": {
+        "en": "Yarn cache",
+        "tr": "Yarn önbelleği"
+      },
+      "category": "developer",
+      "paths": [
+        "~/Library/Caches/Yarn/*"
+      ],
+      "strategy": "deleteAll",
+      "requiresRoot": false,
+      "regrows": true,
+      "cost": {
+        "en": "Packages are fetched from the network on the next install",
+        "tr": "Paketler bir sonraki kurulumda ağdan iner"
+      }
+    },
+    {
+      "id": "pip.cache",
+      "name": {
+        "en": "pip cache",
+        "tr": "pip önbelleği"
+      },
+      "category": "developer",
+      "paths": [
+        "~/Library/Caches/pip/*"
+      ],
+      "strategy": "deleteAll",
+      "requiresRoot": false,
+      "regrows": true,
+      "cost": {
+        "en": "Python packages are downloaded again on the next install",
+        "tr": "Python paketleri bir sonraki kurulumda tekrar iner"
+      }
+    }
+  ]
+}

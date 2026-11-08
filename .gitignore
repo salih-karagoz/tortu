@@ -1,0 +1,24 @@
+# XcodeGen produces the project from project.yml; it is not source.
+*.xcodeproj
+*.xcworkspace
+
+.build/
+.swiftpm/
+DerivedData/
+xcuserdata/
+*.xcuserstate
+
+.DS_Store
+
+# Signing material and licence keys never belong in the repository.
+*.p12
+*.cer
+*.provisionprofile
+sparkle_private_key*
+
+# Build output and release artefacts: produced, never source.
+build/
+dist/
+
+# IDE project files.
+.idea/
