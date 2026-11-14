@@ -10,6 +10,10 @@ import SwiftUI
 /// image by construction, which is what lets the menu bar invert it on a dark
 /// menu bar and dim it when the app is not active.
 enum MenuBarGlyph {
+    // Drawn once and kept. `NSImage` is not `Sendable`, and a global that is
+    // not may not be shared across isolation domains — so it is pinned to the
+    // main actor, which is the only place a menu bar item is ever read from.
+    @MainActor
     static let image: NSImage = {
         let size = NSSize(width: 18, height: 18)
         let image = NSImage(size: size, flipped: false) { _ in

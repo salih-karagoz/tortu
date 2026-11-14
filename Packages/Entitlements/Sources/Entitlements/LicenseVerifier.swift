@@ -8,7 +8,12 @@ import Foundation
 /// to clean their own disk is both a privacy cost and an outage waiting to
 /// happen. Ed25519 signatures let the check happen on the user's machine with
 /// nothing to contact.
-public struct LicenseVerifier: Sendable {
+/// `@unchecked` because CryptoKit's key types were not marked `Sendable`
+/// until a later SDK than the one this project's floor supports. They are
+/// immutable values with no reference semantics, and this struct stores one
+/// and never mutates it, so the promise is kept by construction rather than
+/// by the compiler.
+public struct LicenseVerifier: @unchecked Sendable {
     private let publicKey: Curve25519.Signing.PublicKey
     private let now: @Sendable () -> Date
 
@@ -56,7 +61,8 @@ public struct LicenseVerifier: Sendable {
 /// It lives here so that the signing and verifying sides cannot drift apart,
 /// and so the round trip is covered by the same tests. The private key is not
 /// in this repository and must never be.
-public struct LicenseIssuer: Sendable {
+/// `@unchecked` for the same reason as `LicenseVerifier` above.
+public struct LicenseIssuer: @unchecked Sendable {
     private let privateKey: Curve25519.Signing.PrivateKey
 
     public init(privateKey: Curve25519.Signing.PrivateKey) {
