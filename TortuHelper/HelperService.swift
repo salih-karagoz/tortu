@@ -25,9 +25,16 @@ final class HelperService: NSObject, TortuHelperProtocol, @unchecked Sendable {
     private let evaluator: RuleEvaluator
     private let remove: @Sendable (String) throws -> Void
 
+    /// The evaluator reads the process table rather than the window server.
+    /// `ProcessGuard`'s default asks `NSWorkspace`, which in a root daemon
+    /// with no GUI session reports nothing running — so `blockedByProcesses`
+    /// would always pass and the helper would delete the simulator's shared
+    /// cache with Xcode open.
     init(
         store: RuleStore,
-        evaluator: RuleEvaluator = RuleEvaluator(),
+        evaluator: RuleEvaluator = RuleEvaluator(
+            guardian: ProcessGuard(applications: SystemProcesses())
+        ),
         remove: @escaping @Sendable (String) throws -> Void = { path in
             try FileManager().removeItem(at: URL(filePath: path))
         }

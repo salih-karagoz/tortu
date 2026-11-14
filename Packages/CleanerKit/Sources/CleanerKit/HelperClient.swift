@@ -69,19 +69,17 @@ public actor HelperClient {
     /// Rule identifiers this helper build is willing to act on. Useful on its
     /// own: a mismatch means the app and the helper are different versions.
     public func availableRuleIdentifiers() async throws -> [String] {
-        let proxy = try proxy()
-        return await withCheckedContinuation { continuation in
-            proxy.availableRuleIdentifiers { continuation.resume(returning: $0) }
+        try await call { proxy, finish in
+            proxy.availableRuleIdentifiers { finish($0) }
         }
     }
 
     public func perform(ruleIdentifier: String, dryRun: Bool) async throws -> HelperReport {
-        let proxy = try proxy()
-        let data: Data? = await withCheckedContinuation { continuation in
+        let data: Data? = try await call { proxy, finish in
             if dryRun {
-                proxy.preview(ruleIdentifier: ruleIdentifier) { continuation.resume(returning: $0) }
+                proxy.preview(ruleIdentifier: ruleIdentifier) { finish($0) }
             } else {
-                proxy.perform(ruleIdentifier: ruleIdentifier) { continuation.resume(returning: $0) }
+                proxy.perform(ruleIdentifier: ruleIdentifier) { finish($0) }
             }
         }
         guard let data, let report = try? JSONDecoder().decode(HelperReport.self, from: data) else {
@@ -93,16 +91,36 @@ public actor HelperClient {
         return report
     }
 
-    private func proxy() throws -> any TortuHelperProtocol {
+    /// One round trip to the helper.
+    ///
+    /// XPC answers a message in one of two ways: the reply block, or the error
+    /// handler, when the connection breaks before a reply can arrive. The
+    /// earlier shape resumed the continuation only from the reply block and
+    /// discarded the error, so a helper that crashed, was unregistered, or
+    /// became unreachable left the caller awaiting a reply that would never
+    /// come. `CleanupRunner` awaits this, so the cleanup would have sat on
+    /// "running" for the rest of the session with no way back.
+    ///
+    /// Both paths finish the continuation now, and `SingleResume` makes it
+    /// exactly once, because resuming twice is a crash rather than a warning.
+    private func call<Value: Sendable>(
+        _ send: (any TortuHelperProtocol, @escaping (Value) -> Void) -> Void
+    ) async throws -> Value {
         guard status == .enabled else { throw HelperError.notEnabled(status) }
 
         let connection = existingOrNewConnection()
-        guard let proxy = connection.remoteObjectProxyWithErrorHandler({ _ in })
-            as? any TortuHelperProtocol
-        else {
-            throw HelperError.connectionFailed("the helper exported an unexpected interface")
+        return try await withCheckedThrowingContinuation { continuation in
+            let once = SingleResume(continuation)
+            guard let proxy = connection.remoteObjectProxyWithErrorHandler({ error in
+                once.fail(HelperError.connectionFailed(error.localizedDescription))
+            }) as? any TortuHelperProtocol else {
+                once.fail(
+                    HelperError.connectionFailed("the helper exported an unexpected interface")
+                )
+                return
+            }
+            send(proxy) { once.succeed($0) }
         }
-        return proxy
     }
 
     private func existingOrNewConnection() -> NSXPCConnection {
@@ -111,6 +129,14 @@ public actor HelperClient {
             machServiceName: tortuHelperMachServiceName, options: .privileged
         )
         created.remoteObjectInterface = NSXPCInterface(with: TortuHelperProtocol.self)
+        // Interruption is the helper crashing or being replaced. The
+        // connection object survives it, but the one held here is dropped so
+        // the next call builds a fresh one rather than reusing a connection
+        // whose peer has changed underneath it.
+        created.interruptionHandler = { [weak self] in
+            guard let self else { return }
+            Task { await self.forgetConnection() }
+        }
         created.invalidationHandler = { [weak self] in
             // Unwrapped before the task rather than chained through `self?`:
             // the optional chain forms an optional async call, which Swift 6
@@ -130,5 +156,36 @@ public actor HelperClient {
     private func closeConnection() {
         connection?.invalidate()
         connection = nil
+    }
+}
+
+/// Resumes a continuation exactly once.
+///
+/// XPC promises to call either a reply block or an error handler, never both,
+/// but nothing in the type system holds it to that, and the two arrive on
+/// different queues. Resuming a `CheckedContinuation` twice traps, so the
+/// promise is enforced here rather than relied upon.
+private final class SingleResume<Value: Sendable>: @unchecked Sendable {
+    private var continuation: CheckedContinuation<Value, any Error>?
+    private let lock = NSLock()
+
+    init(_ continuation: CheckedContinuation<Value, any Error>) {
+        self.continuation = continuation
+    }
+
+    func succeed(_ value: Value) {
+        take()?.resume(returning: value)
+    }
+
+    func fail(_ error: any Error) {
+        take()?.resume(throwing: error)
+    }
+
+    private func take() -> CheckedContinuation<Value, any Error>? {
+        lock.lock()
+        defer { lock.unlock() }
+        let pending = continuation
+        continuation = nil
+        return pending
     }
 }
