@@ -119,6 +119,14 @@ public struct RuleEvaluator: Sendable {
         }
     }
 
+    /// Newest first, and by path when two share a timestamp, so that two runs
+    /// over an unchanged disk agree on which copy is the newest.
+    private static func newestFirst(_ first: CandidatePath, _ second: CandidatePath) -> Bool {
+        first.modified == second.modified
+            ? first.path < second.path
+            : first.modified > second.modified
+    }
+
     /// Splits matches into what a strategy removes and what it keeps.
     func apply(
         _ strategy: CleanupStrategy,
@@ -129,9 +137,26 @@ public struct RuleEvaluator: Sendable {
             return (matches, [])
 
         case let .keepNewest(count):
-            // Newest first, so the ones left warm are the ones in use.
-            let ordered = matches.sorted { $0.modified > $1.modified }
-            return (Array(ordered.dropFirst(count)), Array(ordered.prefix(count)))
+            // Grouped by the directory each match sits in, because one
+            // pattern can reach across many projects:
+            // `~/**/.dart_tool/flutter_build/*` matches every Flutter project
+            // on the machine, and "keep the newest two" has always meant two
+            // per project. Sorting one flat list keeps the two newest
+            // anywhere and deletes every other project's warm build, which is
+            // the opposite of what the strategy is for.
+            var candidates: [CandidatePath] = []
+            var kept: [CandidatePath] = []
+            let byDirectory = Dictionary(grouping: matches) {
+                ($0.path as NSString).deletingLastPathComponent
+            }
+            for group in byDirectory.values {
+                let ordered = group.sorted(by: Self.newestFirst)
+                kept.append(contentsOf: ordered.prefix(count))
+                candidates.append(contentsOf: ordered.dropFirst(count))
+            }
+            // Grouping loses the order, so both halves are sorted again: the
+            // interface must not reshuffle itself between runs.
+            return (candidates.sorted(by: Self.newestFirst), kept.sorted(by: Self.newestFirst))
 
         case let .olderThan(days):
             let cutoff = clock().addingTimeInterval(-Double(days) * 86_400)

@@ -346,9 +346,16 @@ struct FindersView: View {
     // MARK: Selection
 
     /// The newest copy is kept unless the user says otherwise, because the
-    /// newest is the one most likely to be the one in use.
+    /// newest is the one most likely to be the one in use. Copies written in
+    /// the same second — `cp -p`, or a restore from a backup — are settled by
+    /// path, so the choice does not move between two looks at the same disk.
     private func keptPath(in group: DuplicateGroup) -> String? {
-        controller.kept[group.id] ?? group.files.max(by: { $0.modified < $1.modified })?.path
+        if let chosen = controller.kept[group.id] { return chosen }
+        return group.files.max { first, second in
+            first.modified == second.modified
+                ? first.path > second.path
+                : first.modified < second.modified
+        }?.path
     }
 
     private func syncSelection(_ groups: [DuplicateGroup]) {

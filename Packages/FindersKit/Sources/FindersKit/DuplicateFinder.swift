@@ -106,6 +106,20 @@ public struct DuplicateFinder: Sendable {
         return distinct
     }
 
+    /// When each copy was last written.
+    ///
+    /// `ScanNode` does not carry a date, and the screen offers to keep the
+    /// newest copy, so without this every copy claimed the same instant and
+    /// "newest" picked an arbitrary one — frequently selecting the genuinely
+    /// newest file for deletion. Only files that already matched on size and
+    /// on a full content hash reach this, so the extra `lstat` is paid on a
+    /// handful of paths rather than on everything scanned.
+    private func modificationDate(_ path: String) -> Date? {
+        var info = stat()
+        guard lstat(path, &info) == 0 else { return nil }
+        return Date(timeIntervalSince1970: TimeInterval(info.st_mtimespec.tv_sec))
+    }
+
     private func hashGroups(_ nodes: [ScanNode], size: ByteCount) -> [DuplicateGroup] {
         var byPrefix: [String: [ScanNode]] = [:]
         for node in nodes {
@@ -126,7 +140,11 @@ public struct DuplicateFinder: Sendable {
                     DuplicateGroup(
                         digest: digest,
                         files: identical.map {
-                            FoundFile(path: $0.path, size: size, modified: .distantPast)
+                            FoundFile(
+                                path: $0.path,
+                                size: size,
+                                modified: modificationDate($0.path) ?? .distantPast
+                            )
                         }
                     )
                 )

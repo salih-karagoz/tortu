@@ -12,6 +12,10 @@ public enum CleanupStrategy: Sendable, Hashable {
     /// creates one per build configuration and never removes the old ones.
     /// Deleting all of them forces a full rebuild; keeping the newest few
     /// reclaims almost everything and leaves the working configuration warm.
+    ///
+    /// The count is per directory, not per rule. One pattern can match in
+    /// every project on the machine, and keeping two of those in total would
+    /// leave every project but one with nothing warm.
     case keepNewest(Int)
 
     /// Remove matches not modified within the last `days` days.

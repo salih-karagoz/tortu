@@ -15,6 +15,39 @@ struct RuleEvaluatorTests {
         )
     }
 
+    static func build(_ project: String, _ name: String, daysAgo: Double) -> CandidatePath {
+        CandidatePath(
+            path: "/Users/someone/\(project)/.dart_tool/flutter_build/\(name)",
+            size: ByteCount(1_000),
+            modified: Date(timeIntervalSince1970: 1_000_000_000 - daysAgo * 86_400),
+            isDirectory: true
+        )
+    }
+
+    /// `~/**/.dart_tool/flutter_build/*` matches in every Flutter project on
+    /// the machine. Sorting one flat list keeps the two newest anywhere, so a
+    /// project not touched this week loses every warm build it had — which is
+    /// the opposite of what the strategy promises.
+    @Test("keepNewest counts per directory, not across every project at once")
+    func keepNewestPerDirectory() {
+        let evaluator = RuleEvaluator(clock: { Date(timeIntervalSince1970: 1_000_000_000) })
+        let matches = [
+            Self.build("alpha", "a1", daysAgo: 1),
+            Self.build("alpha", "a2", daysAgo: 2),
+            Self.build("alpha", "a3", daysAgo: 3),
+            Self.build("beta", "b1", daysAgo: 40),
+            Self.build("beta", "b2", daysAgo: 41),
+            Self.build("beta", "b3", daysAgo: 42),
+        ]
+
+        let (candidates, kept) = evaluator.apply(.keepNewest(2), to: matches)
+
+        #expect(kept.count == 4)
+        #expect(Set(candidates.map { ($0.path as NSString).lastPathComponent }) == ["a3", "b3"])
+        // Beta's newest is older than everything alpha has, and survives anyway.
+        #expect(kept.contains { $0.path.hasSuffix("/b1") })
+    }
+
     @Test("keepNewest keeps the most recent and proposes the rest")
     func keepNewest() {
         let evaluator = RuleEvaluator(
