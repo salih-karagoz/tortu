@@ -2,17 +2,16 @@
 
 ## The open core model, stated plainly
 
-Tortu is open source under Apache-2.0. There is also a paid build, and the
-capabilities it adds are listed here in full rather than summarised: history
-charts, growth charts, background monitoring and its threshold notifications,
-scheduled profiles, the duplicate finder, the application uninstaller, rule
-sync, and the live activity instrument. Contributions to this repository may
-end up in that build, and you should know that before you send one.
+Tortu is open source under Apache-2.0, and there is nothing else. No paid
+build, no Pro tier, no licence to buy: the application you download is this
+repository compiled, with every capability in it.
 
-What is *not* sold, by policy: the scanner, the rules engine, every rule that
-deletes files, and the privileged helper. Code that runs as root or removes a
-file stays readable by anyone. A pull request that moves one of those behind a
-paid capability will be declined.
+That is a decision rather than a promise, so here is how it would change if it
+ever did. It would be announced before it happened, it would never take away a
+capability that already worked, and it would never cover the scanner, the rules
+engine, a rule that deletes files, or the privileged helper — code that runs as
+root or removes a file stays readable by anyone. A pull request that gates one
+of those will be declined.
 
 ## Sign your commits off
 

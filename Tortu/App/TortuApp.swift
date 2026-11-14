@@ -14,25 +14,23 @@ struct TortuApp: App {
     /// separate preferences window.
     @State private var selection: SidebarSection = .panel
 
-    /// A licence is verified offline against a key compiled into the app. If
-    /// there is no licence, or it fails to verify, the app runs as the free
-    /// build rather than refusing to start.
+    /// Everything is unlocked, because nothing is sold. Tortu is one build,
+    /// Apache-2.0, and the capability a reader can see in the repository is
+    /// the capability the downloaded application has.
+    ///
+    /// The `Entitlements` package keeps its licence verifier and its tests, so
+    /// that this stays a decision rather than a demolition. What is
+    /// deliberately absent is a signing key: an application that carries one
+    /// implies it checks something, and this one checks nothing.
     private let entitlements: any EntitlementProviding = {
         #if DEBUG
-        // Snapshot mode never reads the real licence: a capture of a paid
-        // screen must not depend on which licence this machine happens to
-        // hold, and a capture of the locked state would be impossible on a
-        // machine that holds one.
-        if DebugSnapshot.directory != nil {
-            return DebugSnapshot.showsFree ? FreeEntitlements() : FixedEntitlements.everything
-        }
-        #endif
-        guard let verifier = try? LicenseVerifier(
-            publicKeyRepresentation: TortuKeys.licensePublicKey
-        ) else {
+        // Snapshot mode can still capture a locked screen, which is now the
+        // only way to see one.
+        if DebugSnapshot.directory != nil, DebugSnapshot.showsFree {
             return FreeEntitlements()
         }
-        return EntitlementLoader(verifier: verifier).load(from: TortuKeys.licenseURL).provider
+        #endif
+        return OpenEntitlements()
     }()
 
     private let container: ModelContainer = {
@@ -134,7 +132,7 @@ private struct SettingsCommand: View {
 }
 
 private struct EntitlementsKey: EnvironmentKey {
-    static let defaultValue: any EntitlementProviding = FreeEntitlements()
+    static let defaultValue: any EntitlementProviding = OpenEntitlements()
 }
 
 extension EnvironmentValues {

@@ -182,7 +182,7 @@ for package in Packages/*/; do (cd "$package" && swift test); done
 | `HistoryKit` | Samples over time, growth and regrowth analysis |
 | `FindersKit` | Large files, duplicates, leftover application support |
 | `MonitorKit` | Live processor, memory, process, power, disk and network readings |
-| `Entitlements` | Capability gating for the paid build |
+| `Entitlements` | The capability gate, kept but not used to withhold anything |
 
 ## Rules are data
 
@@ -211,18 +211,24 @@ records that it will come back — which is what the series is for.
 
 See [CONTRIBUTING.md](CONTRIBUTING.md) for what makes a good one.
 
-## Open core, stated plainly
+## Free, and all of it open
 
-Tortu is Apache-2.0. A paid build adds depth and automation: history and growth
-charts, background monitoring with threshold notifications, scheduled profiles,
-the duplicate finder, the application uninstaller, rule sync, and the live
-activity instrument.
+There is no paid build, no Pro tier and no licence to buy. Every capability
+Tortu has is in the application you download, and all of it is in this
+repository under Apache-2.0.
 
-What is **not** sold, by policy: the scanner, the rules engine, every rule that
-deletes a file, and the privileged helper. Code that runs as root or removes a
-file stays readable by anyone — and a test in the repository fails if a
-capability named for scanning, cleaning, deleting or the helper is ever added to
-the gated list.
+The `Entitlements` package is still here, with its signed-licence verifier and
+its tests. It is wired to a provider that unlocks everything, so the gate is one
+line rather than an absence — if that ever changes, it changes honestly and in
+public, not by quietly locking something that used to work.
+
+Two rules hold whatever happens next. Nothing that scans, deletes or runs as
+root will ever be gated: the privileged helper and every rule that removes a
+file stay readable by anyone, and a test in the repository fails if a capability
+named for scanning, cleaning, deleting or the helper is added to the gated list.
+And nothing will be listed as gated that does not have a real gate in the code —
+a capability that exists only as a plan does not belong in a type that describes
+what the application does.
 
 ## Interface
 

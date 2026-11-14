@@ -1,31 +1,37 @@
 import Foundation
 
-/// A capability that may be gated behind a paid licence.
+/// A capability that could be gated behind a licence.
 ///
-/// Nothing security-critical appears here by design. The privileged helper and
-/// every rule that deletes files stay in the free, open build, so that the code
-/// running as root remains auditable by anyone. What is sold is depth and
-/// automation, not the ability to clean safely.
+/// Nothing is sold. Tortu ships as one build, Apache-2.0, with every
+/// capability in it, so every answer here is yes and `OpenEntitlements` is
+/// what the application links.
+///
+/// The mechanism stays, because whether to sell is a product decision rather
+/// than a technical one and it should be reversible in a line rather than
+/// rebuilt from nothing. Two rules hold whatever that decision turns out to
+/// be:
+///
+/// - Only a capability with a real gate in the code appears here. A case with
+///   no call site is a plan, and a plan does not belong in a type that claims
+///   to describe what the application does.
+/// - Nothing security-critical appears here, ever. The privileged helper and
+///   every rule that deletes a file stay in the open build, so the code that
+///   runs as root remains auditable by anyone.
 public enum Entitlement: String, Sendable, CaseIterable, Codable {
-    case history
-    case growthCharts
+    /// Watching the volume while the application is closed, and the threshold
+    /// notifications that depend on that watch.
     case backgroundMonitoring
-    case scheduledProfiles
-    case duplicateFinder
-    case applicationUninstaller
-    case ruleSync
     /// The live instrument: processor, memory, processes, energy, disk and
-    /// network, measured as they happen rather than once a quarter of an
-    /// hour. Nothing it does removes anything, which is why it is one of the
-    /// surfaces that may be sold.
+    /// network, measured as they happen rather than once a quarter of an hour.
+    /// Nothing it does removes anything.
     case liveActivity
 }
 
 /// Answers whether a capability is unlocked.
 ///
-/// The free build links `FreeEntitlements`, which always answers no. The Pro
-/// build links an implementation that verifies an Ed25519-signed licence file
-/// offline, with the public key compiled in; no licence server is involved.
+/// The application links `OpenEntitlements`, which always answers yes. The
+/// other two implementations exist for tests, for previews, and for capturing
+/// what a locked screen would look like.
 public protocol EntitlementProviding: Sendable {
     func isUnlocked(_ entitlement: Entitlement) -> Bool
 }
@@ -40,7 +46,19 @@ public extension EntitlementProviding {
     }
 }
 
-/// The provider compiled into the free build.
+/// The provider the application links: everything is unlocked, because
+/// everything is given away.
+///
+/// This is the one place that decides. Every gate in the application still
+/// asks, so turning the decision around later means changing this line rather
+/// than finding each gate again.
+public struct OpenEntitlements: EntitlementProviding {
+    public init() {}
+
+    public func isUnlocked(_ entitlement: Entitlement) -> Bool { true }
+}
+
+/// A provider that unlocks nothing.
 public struct FreeEntitlements: EntitlementProviding {
     public init() {}
 

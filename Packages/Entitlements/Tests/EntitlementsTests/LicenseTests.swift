@@ -17,7 +17,7 @@ struct LicenseTests {
 
     static func license(
         expires: Date? = nil,
-        entitlements: [Entitlement] = [.history, .growthCharts]
+        entitlements: [Entitlement] = [.backgroundMonitoring]
     ) -> License {
         License(
             licenseID: "TORTU-0001", issuedTo: "A Person",
@@ -33,12 +33,12 @@ struct LicenseTests {
 
         #expect(verified.licenseID == "TORTU-0001")
         #expect(verified.issuedTo == "A Person")
-        #expect(Set(verified.entitlements) == [.history, .growthCharts])
+        #expect(Set(verified.entitlements) == [.backgroundMonitoring])
     }
 
     @Test("A tampered payload fails verification")
     func tamperedPayload() throws {
-        let signed = try Self.issuer.sign(Self.license(entitlements: [.history]))
+        let signed = try Self.issuer.sign(Self.license(entitlements: [.backgroundMonitoring]))
 
         // Swap in a payload that grants everything, keeping the old signature.
         let greedy = try JSONEncoder.iso8601Sorted.encode(
@@ -90,7 +90,7 @@ struct LicenseTests {
     func futureFormat() throws {
         let future = License(
             licenseID: "X", issuedTo: "Y", issued: Self.now,
-            entitlements: [.history], formatVersion: 99
+            entitlements: [.backgroundMonitoring], formatVersion: 99
         )
         let signed = try Self.issuer.sign(future)
         #expect(throws: LicenseError.unsupportedFormat(version: 99)) {
@@ -112,12 +112,12 @@ struct LicenseTests {
 
     @Test("A verified licence grants exactly what it lists")
     func grantsListedEntitlementsOnly() throws {
-        let signed = try Self.issuer.sign(Self.license(entitlements: [.history]))
+        let signed = try Self.issuer.sign(Self.license(entitlements: [.backgroundMonitoring]))
         let provider = LicensedEntitlements(license: try Self.verifier().verify(signed))
 
-        #expect(provider.isUnlocked(.history))
-        #expect(!provider.isUnlocked(.duplicateFinder))
-        #expect(provider.unlockedEntitlements == [.history])
+        #expect(provider.isUnlocked(.backgroundMonitoring))
+        #expect(!provider.isUnlocked(.liveActivity))
+        #expect(provider.unlockedEntitlements == [.backgroundMonitoring])
     }
 }
 
@@ -158,8 +158,8 @@ struct EntitlementLoaderTests {
             Issue.record("expected the licence to be accepted")
             return
         }
-        #expect(outcome.provider.isUnlocked(.growthCharts))
-        #expect(!outcome.provider.isUnlocked(.ruleSync))
+        #expect(outcome.provider.isUnlocked(.backgroundMonitoring))
+        #expect(!outcome.provider.isUnlocked(.liveActivity))
     }
 }
 

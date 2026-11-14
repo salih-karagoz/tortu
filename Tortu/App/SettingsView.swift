@@ -252,15 +252,17 @@ struct SettingsView: View {
 
     // MARK: Licence
 
+    /// The software licence, not a bought one. There is nothing to buy, and a
+    /// settings screen that implied otherwise would be exactly the kind of
+    /// claim the rest of this screen exists to avoid.
     private var licence: some View {
         SettingsBox(label: "settings.licence.label") {
-            Text(entitlements.isUnlocked(.growthCharts)
-                ? "settings.licence.full" : "settings.licence.free")
+            Text("settings.licence.open")
                 .font(Face.text(12.5, 600))
                 .foregroundStyle(Tone.ink)
-            Note("settings.licence.note")
+            Note("settings.licence.openNote")
                 .fixedSize(horizontal: false, vertical: true)
-            Button { openLicenceFolder() } label: { Text("settings.licence.change") }
+            Button { openSource() } label: { Text("settings.licence.source") }
                 .buttonStyle(.secondaryAction)
                 .padding(.top, 2)
         }
@@ -281,12 +283,10 @@ struct SettingsView: View {
         return url.path(percentEncoded: false)
     }
 
-    /// Opens the folder a licence file is read from, creating it if needed,
-    /// so that "change the key" means dropping a file in rather than pasting
-    /// a string into a box the app then has to store somewhere.
-    private func openLicenceFolder() {
-        guard let url = TortuKeys.licenseURL?.deletingLastPathComponent() else { return }
-        try? FileManager.default.createDirectory(at: url, withIntermediateDirectories: true)
+    /// Opens the repository. The application is that repository built: there
+    /// is no capability in one that is missing from the other.
+    private func openSource() {
+        guard let url = URL(string: "https://github.com/salih-karagoz/tortu") else { return }
         NSWorkspace.shared.open(url)
     }
 }

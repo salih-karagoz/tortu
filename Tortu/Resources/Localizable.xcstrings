@@ -5340,57 +5340,6 @@
         }
       }
     },
-    "settings.licence.change": {
-      "extractionState": "manual",
-      "localizations": {
-        "en": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Open licence folder"
-          }
-        },
-        "tr": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Lisans klasörünü aç"
-          }
-        }
-      }
-    },
-    "settings.licence.free": {
-      "extractionState": "manual",
-      "localizations": {
-        "en": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Free · measurement and rules"
-          }
-        },
-        "tr": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Ücretsiz · ölçüm ve kurallar"
-          }
-        }
-      }
-    },
-    "settings.licence.full": {
-      "extractionState": "manual",
-      "localizations": {
-        "en": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Personal licence · 1 Mac"
-          }
-        },
-        "tr": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Kişisel lisans · 1 Mac"
-          }
-        }
-      }
-    },
     "settings.licence.label": {
       "extractionState": "manual",
       "localizations": {
@@ -5408,19 +5357,53 @@
         }
       }
     },
-    "settings.licence.note": {
+    "settings.licence.open": {
       "extractionState": "manual",
       "localizations": {
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "A licence is a signed file checked on this machine. Nothing is sent anywhere to verify it."
+            "value": "Apache-2.0 · free, and all of it open"
           }
         },
         "tr": {
           "stringUnit": {
             "state": "translated",
-            "value": "Lisans, bu makinede doğrulanan imzalı bir dosyadır. Doğrulama için hiçbir yere bir şey gönderilmez."
+            "value": "Apache-2.0 · ücretsiz, tamamı açık"
+          }
+        }
+      }
+    },
+    "settings.licence.openNote": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Every capability Tortu has is in the build you are running. Nothing is sold, nothing is held back, and there is no licence for the application to check."
+          }
+        },
+        "tr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Tortu'nun sahip olduğu her özellik, çalıştırdığınız yapının içinde. Satılan bir şey yok, saklanan bir şey yok, uygulamanın doğrulayacağı bir lisans da yok."
+          }
+        }
+      }
+    },
+    "settings.licence.source": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Open the source"
+          }
+        },
+        "tr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Kaynak kodu aç"
           }
         }
       }
