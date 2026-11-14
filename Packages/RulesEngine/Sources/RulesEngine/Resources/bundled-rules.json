@@ -71,7 +71,7 @@
       },
       "category": "developer",
       "paths": [
-        "~/.dartServer"
+        "~/.dartServer/*"
       ],
       "strategy": "deleteAll",
       "requiresRoot": false,

@@ -81,6 +81,54 @@ struct UninstallerTests {
         )
     }
 
+    /// The other direction, which used to fail. `com.example.widget` is
+    /// installed and `com.example.widget.helper` is being removed: the
+    /// helper's own paths contain the neighbour's identifier as a prefix, and
+    /// a substring test marked every one of them shared, so uninstalling the
+    /// helper removed nothing and said so.
+    @Test("A neighbour whose identifier is a prefix does not block a removal")
+    func prefixNeighbourDoesNotBlock() async throws {
+        let world = try Self.makeWorld()
+        defer { try? FileManager.default.removeItem(at: world.home.deletingLastPathComponent()) }
+
+        let uninstaller = ApplicationUninstaller(home: world.home.path(percentEncoded: false))
+        let apps = await uninstaller.applications(
+            in: [world.applications.path(percentEncoded: false)]
+        )
+        let helper = try #require(
+            apps.first { $0.bundleIdentifier == "com.example.widget.helper" }
+        )
+
+        let plan = await uninstaller.plan(for: helper, otherInstalled: apps)
+
+        #expect(plan.shared.isEmpty)
+        #expect(plan.leftovers.contains {
+            $0.path.hasSuffix("Application Support/com.example.widget.helper")
+        })
+    }
+
+    /// Two copies of one application, which is what the shared list is for.
+    @Test("A second copy with the same identifier holds the support paths back")
+    func secondCopyIsShared() async throws {
+        let world = try Self.makeWorld()
+        defer { try? FileManager.default.removeItem(at: world.home.deletingLastPathComponent()) }
+
+        let uninstaller = ApplicationUninstaller(home: world.home.path(percentEncoded: false))
+        let apps = await uninstaller.applications(
+            in: [world.applications.path(percentEncoded: false)]
+        )
+        let widget = try #require(apps.first { $0.bundleIdentifier == "com.example.widget" })
+        let duplicate = InstalledApplication(
+            path: "/Users/someone/Applications/Widget.app", name: "Widget",
+            bundleIdentifier: "com.example.widget", size: ByteCount(1), lastTrace: nil
+        )
+
+        let plan = await uninstaller.plan(for: widget, otherInstalled: apps + [duplicate])
+
+        #expect(plan.leftovers.isEmpty)
+        #expect(!plan.shared.isEmpty)
+    }
+
     @Test("Nothing is listed for an application that left nothing behind")
     func noLeftovers() async throws {
         let world = try Self.makeWorld()

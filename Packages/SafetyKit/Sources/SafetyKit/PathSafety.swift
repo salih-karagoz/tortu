@@ -31,8 +31,15 @@ public enum PathSafety {
         "/var/folders", "/private/var/folders",
     ]
 
-    /// Fewest path components a removable path may have. `/Users/someone` has
-    /// three and is refused; `/Users/someone/.npm/_cacache` has five.
+    /// Fewest path components a removable path may have, counting the way
+    /// `split(separator: "/")` does: `/Users/someone` has two and is refused,
+    /// `/Users/someone/.dartServer` has three and is refused, and
+    /// `/Users/someone/.npm/_cacache` has four and is allowed.
+    ///
+    /// The count used to be written down one higher than the code counts,
+    /// which is how a bundled rule came to point at a path this always
+    /// refused — it appeared in the plan with a size and was skipped without
+    /// a word every time it ran.
     public static let minimumComponents = 4
 
     /// Prefixes the privileged helper may remove inside, and nothing else.

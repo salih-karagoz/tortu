@@ -66,9 +66,12 @@ public struct GPUSampler: Sendable {
                 reading.utilisation = device
                 reading.rendererUtilisation = percentage("Renderer Utilization %")
                 reading.tilerUtilisation = percentage("Tiler Utilization %")
-                if let memory = statistics["In use system memory"] as? Int {
-                    reading.memoryInUse = ByteCount(Int64(memory))
-                }
+                // Assigned whether or not this accelerator publishes it. A
+                // conditional assignment left the previous accelerator's
+                // figure in place, so utilisation and memory could describe
+                // two different processors.
+                reading.memoryInUse = (statistics["In use system memory"] as? Int)
+                    .map { ByteCount(Int64($0)) }
             }
         }
         return reading

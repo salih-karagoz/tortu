@@ -125,14 +125,33 @@ public struct NetworkAccumulator: Sendable {
         session = [:]
     }
 
+    /// The most one interface is taken to carry in a second before a
+    /// backwards step stops looking like a wrap. Twice a ten-gigabit link,
+    /// which no interface on a laptop sustains for a whole second.
+    static let plausibleBytesPerSecond: Double = 2_000_000_000
+
     /// The bytes that passed between two readings of a counter that wraps.
     ///
-    /// Unsigned subtraction is already the right answer modulo two to the
-    /// thirty-two, so a wrap needs no special case — only an interval short
-    /// enough that no more than four gigabytes went past, which at any
-    /// cadence this screen offers it is.
-    static func passed(_ now: UInt32, since previous: UInt32) -> UInt32 {
-        now &- previous
+    /// Unsigned subtraction is the right answer modulo two to the thirty-two,
+    /// so a wrap needs no special case. A counter that was *restarted* looks
+    /// identical to that subtraction and is not the same thing: an interface
+    /// taken down and brought back under the same name — a VPN reconnecting
+    /// as `utun4` — begins again at nought, and the subtraction then reports
+    /// nearly four gigabytes in one tick. That is a rate of several gigabytes
+    /// a second on screen and a session total that stays wrong for as long as
+    /// the screen is open.
+    ///
+    /// So a backwards step is read as a wrap only when a wrap could have
+    /// carried that many bytes in the time available, and as a restart
+    /// otherwise. Where the ceiling is wrong the cost is one counter's worth
+    /// undercounted on a genuine wrap, which is the smaller of the two errors
+    /// and the quieter one.
+    static func passed(
+        _ now: UInt32, since previous: UInt32, interval: TimeInterval
+    ) -> UInt32 {
+        if now >= previous { return now - previous }
+        let wrapped = now &- previous
+        return Double(wrapped) <= plausibleBytesPerSecond * max(interval, 0) ? wrapped : now
     }
 
     public mutating func reading(
@@ -146,8 +165,12 @@ public struct NetworkAccumulator: Sendable {
                 readings.append(InterfaceReading(counters: current))
                 continue
             }
-            let received = Self.passed(current.bytesIn, since: before.bytesIn)
-            let sent = Self.passed(current.bytesOut, since: before.bytesOut)
+            let received = Self.passed(
+                current.bytesIn, since: before.bytesIn, interval: interval
+            )
+            let sent = Self.passed(
+                current.bytesOut, since: before.bytesOut, interval: interval
+            )
             var totals = session[current.name] ?? (in: 0, out: 0)
             totals.in += Int64(received)
             totals.out += Int64(sent)

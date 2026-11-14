@@ -205,7 +205,29 @@ struct DeltaTests {
         )
         #expect(reading.inPerSecond == 2_000)
         #expect(reading.sessionIn == ByteCount(2_000))
-        #expect(NetworkAccumulator.passed(1_000, since: justBelow) == 2_000)
+        #expect(NetworkAccumulator.passed(1_000, since: justBelow, interval: 1) == 2_000)
+    }
+
+    /// A VPN reconnecting reuses `utun4` and its counters begin again at
+    /// nought. Unsigned subtraction alone reads that as nearly four gigabytes
+    /// in one tick, which shows as a multi-gigabyte-a-second rate and leaves
+    /// the session total wrong for as long as the screen stays open.
+    @Test("An interface that restarts is not read as a wrap")
+    func networkRestart() {
+        var accumulator = NetworkAccumulator()
+        _ = accumulator.reading(
+            from: [InterfaceCounters(
+                name: "utun4", kind: .virtual, bytesIn: 500_000_000, bytesOut: 0
+            )],
+            interval: 0
+        )
+        let reading = accumulator.reading(
+            from: [InterfaceCounters(name: "utun4", kind: .virtual, bytesIn: 120, bytesOut: 0)],
+            interval: 1
+        )
+
+        #expect(reading.interfaces[0].inPerSecond == 120)
+        #expect(reading.interfaces[0].sessionIn == ByteCount(120))
     }
 
     @Test("A running total keeps adding up across readings")

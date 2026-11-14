@@ -99,6 +99,9 @@ public actor SystemMonitor {
 
     private var previousTicks: CPUTicks?
     private var previousProcesses: [pid_t: ProcessFacts] = [:]
+    /// Processes keep their own timestamp, because they are not necessarily
+    /// sampled on every round.
+    private var previousProcessesTaken: Date?
     private var previousDisk: DiskCounters?
     private var network = NetworkAccumulator()
     private var previousTaken: Date?
@@ -116,6 +119,7 @@ public actor SystemMonitor {
     public func reset() {
         previousTicks = nil
         previousProcesses = [:]
+        previousProcessesTaken = nil
         previousDisk = nil
         network.reset()
         previousTaken = nil
@@ -164,14 +168,20 @@ public actor SystemMonitor {
         )
 
         if includeProcesses {
+            // Measured against the last round that *sampled processes*, not
+            // the last round. Leaving processes out for a minute and then
+            // dividing a minute of counters by one second reports every
+            // process as sixty times busier than it is.
+            let processInterval = previousProcessesTaken.map { now.timeIntervalSince($0) } ?? 0
             let facts = processSampler.sample()
             snapshot.processes = ProcessDelta.readings(
-                from: previousProcesses, to: facts, interval: interval, now: now
+                from: previousProcesses, to: facts, interval: processInterval, now: now
             )
             snapshot.closedProcesses = facts.count { !$0.isReadable }
             previousProcesses = Dictionary(
                 facts.map { ($0.pid, $0) }, uniquingKeysWith: { first, _ in first }
             )
+            previousProcessesTaken = now
         }
 
         previousTaken = now

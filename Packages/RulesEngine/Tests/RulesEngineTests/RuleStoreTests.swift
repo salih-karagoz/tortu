@@ -1,9 +1,35 @@
 import Foundation
+import SafetyKit
 import Testing
 @testable import RulesEngine
 
 @Suite("Rule store")
 struct RuleStoreTests {
+    /// A rule shallower than `PathSafety.minimumComponents` is matched,
+    /// measured, shown in the plan with a size, and then refused without a
+    /// word every time it runs. `~/.dartServer` was one of those for months.
+    ///
+    /// `**` counts as one component: it may match nothing, so a pattern that
+    /// relies on it can still produce the occasional path that is refused —
+    /// `~/**/node_modules` does, for a `node_modules` sitting directly in the
+    /// home folder. What this test holds is the stronger failure, a rule that
+    /// cannot reach a legal depth at all however the wildcards fall.
+    @Test("No bundled rule points at a depth path safety always refuses")
+    func bundledRulesAreDeepEnough() throws {
+        let store = try RuleStore.bundled()
+        let home = "/Users/someone"
+        for rule in store.rules {
+            for pattern in rule.paths {
+                let expanded = pattern.hasPrefix("~/") ? home + pattern.dropFirst() : pattern
+                let shallowest = expanded.split(separator: "/").count
+                #expect(
+                    shallowest >= PathSafety.minimumComponents,
+                    "\(rule.id) can never remove anything: \(pattern)"
+                )
+            }
+        }
+    }
+
     @Test("The bundled rules load and validate")
     func bundledRulesLoad() throws {
         let store = try RuleStore.bundled()

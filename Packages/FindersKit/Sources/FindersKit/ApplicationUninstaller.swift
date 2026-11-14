@@ -87,8 +87,23 @@ public struct ApplicationUninstaller: Sendable {
         for application: InstalledApplication,
         otherInstalled: [InstalledApplication]
     ) async -> UninstallPlan {
-        let others = Set(otherInstalled.map(\.bundleIdentifier))
-            .subtracting([application.bundleIdentifier])
+        // Two copies of one application can be installed at once: one in
+        // /Applications and one in ~/Applications, or an old version kept
+        // beside a new one. They share every support path, so removing those
+        // paths while the other copy is still installed takes its state with
+        // it.
+        //
+        // Identifiers are compared whole. This used to ask whether the path
+        // *contained* another identifier, which fired whenever one identifier
+        // was a prefix of another — uninstalling `com.microsoft.VSCodeInsiders`
+        // with `com.microsoft.VSCode` installed marked every leftover shared
+        // and removed nothing. It also subtracted this application's own
+        // identifier first, which made the case the check exists for the one
+        // case it could never see.
+        let sharesIdentifier = otherInstalled.contains {
+            $0.path != application.path
+                && $0.bundleIdentifier == application.bundleIdentifier
+        }
 
         var leftovers: [FoundFile] = []
         var shared: [String] = []
@@ -99,9 +114,7 @@ public struct ApplicationUninstaller: Sendable {
             var info = stat()
             guard lstat(path, &info) == 0 else { continue }
 
-            // If another installed application claims the same identifier,
-            // this is not ours to remove.
-            if others.contains(where: { path.contains("/\($0)") }) {
+            if sharesIdentifier {
                 shared.append(path)
                 continue
             }
