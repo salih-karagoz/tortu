@@ -43,8 +43,16 @@ struct ThresholdNotifier {
 
     // MARK: Permission
 
+    /// The completion-handler form rather than the async one: awaiting
+    /// `notificationSettings()` hands back the whole settings object across
+    /// an isolation boundary, and it is not `Sendable`. Only the one value
+    /// that matters crosses here.
     static func authorisation() async -> UNAuthorizationStatus {
-        await UNUserNotificationCenter.current().notificationSettings().authorizationStatus
+        await withCheckedContinuation { continuation in
+            UNUserNotificationCenter.current().getNotificationSettings { settings in
+                continuation.resume(returning: settings.authorizationStatus)
+            }
+        }
     }
 
     /// Asks once. A refusal is final until the user changes it in System

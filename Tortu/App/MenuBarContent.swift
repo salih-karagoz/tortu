@@ -216,8 +216,12 @@ private struct FreeSpaceTrace: View {
             func point(_ index: Int) -> CGPoint {
                 let x = size.width * Double(index) / Double(values.count - 1)
                 let y = size.height * (1 - (values[index] - low) / span)
-                // Keep the stroke inside the box at both extremes.
-                return CGPoint(x: x, y: 2 + y * (size.height - 6) / size.height)
+                // Keep the stroke inside the box at both extremes. The inset
+                // is named rather than written inline: a bare literal beside
+                // this much CGFloat arithmetic is ambiguous to the type
+                // checker on older toolchains.
+                let inset: CGFloat = 2
+                return CGPoint(x: x, y: inset + y * (size.height - inset * 3) / size.height)
             }
 
             var line = Path()

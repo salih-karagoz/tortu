@@ -1,4 +1,8 @@
-import Darwin
+// `mach_task_self_` is imported as a mutable global, which Swift 6 will not
+// let a concurrent context read. The task port is fixed for the life of the
+// process, so the warning is about the shape of the C declaration rather than
+// about this code.
+@preconcurrency import Darwin
 import Foundation
 
 /// The kernel's running tick counters, per core.
