@@ -49,7 +49,21 @@ public actor HelperClient {
 
     public func unregister() async throws {
         closeConnection()
-        try await service.unregister()
+        // The completion-handler form rather than the async one. `SMAppService`
+        // is not `Sendable`, and awaiting its async method means handing the
+        // service itself across a suspension point, which Swift 6 refuses.
+        // Here the call happens synchronously in the actor's own context and
+        // only the continuation crosses.
+        let service = service
+        try await withCheckedThrowingContinuation { (continuation: CheckedContinuation<Void, any Error>) in
+            service.unregister { error in
+                if let error {
+                    continuation.resume(throwing: error)
+                } else {
+                    continuation.resume()
+                }
+            }
+        }
     }
 
     /// Rule identifiers this helper build is willing to act on. Useful on its
@@ -98,7 +112,11 @@ public actor HelperClient {
         )
         created.remoteObjectInterface = NSXPCInterface(with: TortuHelperProtocol.self)
         created.invalidationHandler = { [weak self] in
-            Task { await self?.forgetConnection() }
+            // Unwrapped before the task rather than chained through `self?`:
+            // the optional chain forms an optional async call, which Swift 6
+            // cannot prove is safe to send into a task from an XPC queue.
+            guard let self else { return }
+            Task { await self.forgetConnection() }
         }
         created.resume()
         connection = created
