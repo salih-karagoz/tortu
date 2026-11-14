@@ -40,6 +40,8 @@ packages:
     path: Packages/HistoryKit
   FindersKit:
     path: Packages/FindersKit
+  MonitorKit:
+    path: Packages/MonitorKit
 
 targets:
   Tortu:
@@ -65,6 +67,7 @@ targets:
       - package: Entitlements
       - package: HistoryKit
       - package: FindersKit
+      - package: MonitorKit
     settings:
       base:
         PRODUCT_BUNDLE_IDENTIFIER: com.muhammedsalihkaragoz.tortu

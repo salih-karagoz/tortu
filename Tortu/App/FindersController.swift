@@ -59,6 +59,19 @@ final class FindersController {
     private var task: Task<Void, Never>?
     private let remover: any FileRemoving = SystemFileRemover()
 
+    /// Whether the root was set from outside and must not be replaced by the
+    /// setting when the screen appears.
+    private(set) var hasChosenRoot = false
+
+    init() {
+        #if DEBUG
+        if let root = DebugSnapshot.root {
+            self.root = root
+            hasChosenRoot = true
+        }
+        #endif
+    }
+
     var isWorking: Bool {
         if case .working = phase { return true }
         return false

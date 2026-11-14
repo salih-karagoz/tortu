@@ -344,6 +344,103 @@ struct Badge: View {
     }
 }
 
+/// The one-line field above a long table.
+///
+/// Drawn rather than taken from AppKit for the same reason the checkbox is:
+/// the system search field brings its own rounded capsule, its own focus ring
+/// and its own magnifying glass, none of which belong to this design.
+struct SearchField: View {
+    let prompt: LocalizedStringResource
+    @Binding var text: String
+    @FocusState private var isFocused: Bool
+
+    var body: some View {
+        HStack(spacing: 6) {
+            TextField(text: $text) { Text(prompt) }
+                .textFieldStyle(.plain)
+                .font(Face.text(12.5))
+                .foregroundStyle(Tone.ink)
+                .focused($isFocused)
+                .onSubmit { isFocused = false }
+
+            if !text.isEmpty {
+                Button { text = "" } label: {
+                    Text(verbatim: "×")
+                        .font(Face.text(15, 500))
+                        .foregroundStyle(Tone.muted)
+                        .frame(width: 14, height: 14)
+                        .contentShape(Rectangle())
+                }
+                .buttonStyle(.plain)
+                .accessibilityLabel(Text("search.clear"))
+            }
+        }
+        .padding(.horizontal, 10)
+        .frame(height: Metric.segmentHeight)
+        .background(
+            RoundedRectangle(cornerRadius: Metric.controlRadius, style: .continuous)
+                .fill(Tone.bg)
+        )
+        .overlay(
+            RoundedRectangle(cornerRadius: Metric.controlRadius, style: .continuous)
+                .strokeBorder(isFocused ? Tone.acc : Tone.b2, lineWidth: Metric.hairline)
+        )
+    }
+}
+
+/// What a screen shows when the licence does not cover it.
+///
+/// It describes the thing in full and says plainly that it is paid for,
+/// rather than showing a blurred screenshot of it. A person deciding whether
+/// to buy something is owed a straight account of what it does.
+struct PaidScreen: View {
+    let title: LocalizedStringResource
+    let summary: LocalizedStringResource
+    /// What the screen would show, one line each.
+    let points: [LocalizedStringResource]
+    let action: (title: LocalizedStringResource, run: () -> Void)
+
+    var body: some View {
+        HairBox(padding: EdgeInsets(top: 26, leading: 26, bottom: 26, trailing: 26)) {
+            VStack(alignment: .leading, spacing: 14) {
+                HStack(spacing: 10) {
+                    Text(title)
+                        .font(Face.display(17, 600))
+                        .foregroundStyle(Tone.ink)
+                    Badge("badge.paid", kind: .accent)
+                }
+
+                Text(summary)
+                    .font(Face.text(12.5))
+                    .foregroundStyle(Tone.sec)
+                    .fixedSize(horizontal: false, vertical: true)
+                    .frame(maxWidth: 520, alignment: .leading)
+
+                VStack(alignment: .leading, spacing: 7) {
+                    ForEach(points.indices, id: \.self) { index in
+                        HStack(alignment: .firstTextBaseline, spacing: 9) {
+                            Dot(color: Tone.b2, size: 4)
+                                .alignmentGuide(.firstTextBaseline) { $0[.bottom] + 1 }
+                            Text(points[index])
+                                .font(Face.text(12))
+                                .foregroundStyle(Tone.ink)
+                                .fixedSize(horizontal: false, vertical: true)
+                                .frame(maxWidth: 640, alignment: .leading)
+                        }
+                    }
+                }
+                .padding(.top, 2)
+
+                Button(action: action.run) { Text(action.title) }
+                    .buttonStyle(.secondaryAction)
+                    .padding(.top, 4)
+            }
+            .frame(maxWidth: .infinity, alignment: .leading)
+        }
+        .frame(maxHeight: .infinity, alignment: .top)
+    }
+}
+
 /// The checkbox beside every rule.
 ///
 /// Drawn rather than taken from AppKit: the system checkbox is the single

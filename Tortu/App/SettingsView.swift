@@ -3,6 +3,7 @@ import Entitlements
 import Foundation
 import ScanCore
 import SwiftUI
+import UserNotifications
 
 /// The Settings screen.
 ///
@@ -225,8 +226,10 @@ struct SettingsView: View {
                 value: preferences.growthThresholdGBPerDay,
                 fractionDigits: 1
             )
-            Note("settings.thresholds.note")
-                .fixedSize(horizontal: false, vertical: true)
+            NotificationPermission(
+                isUnlocked: entitlements.isUnlocked(.backgroundMonitoring)
+            )
+            .padding(.top, 2)
         }
     }
 
@@ -340,5 +343,61 @@ private struct ThresholdRow: View {
                 .frame(width: 56, alignment: .leading)
         }
         .frame(height: 26)
+    }
+}
+
+/// Whether Tortu may send the notifications the thresholds above describe.
+///
+/// Asking happens here, next to the setting it is for, rather than at launch:
+/// a permission prompt that arrives before the user has expressed any wish
+/// is the thing that teaches people to refuse them.
+private struct NotificationPermission: View {
+    let isUnlocked: Bool
+
+    @State private var status: UNAuthorizationStatus = .notDetermined
+    @State private var isAsking = false
+
+    var body: some View {
+        VStack(alignment: .leading, spacing: 8) {
+            HStack(spacing: 8) {
+                Dot(color: status == .authorized ? Tone.acc : Tone.b2, size: 7)
+                Text(state)
+                    .font(Face.text(12.5))
+                    .foregroundStyle(Tone.ink)
+            }
+            Note(note)
+                .fixedSize(horizontal: false, vertical: true)
+            if isUnlocked, status == .notDetermined {
+                Button {
+                    isAsking = true
+                    Task {
+                        status = await ThresholdNotifier.requestAuthorisation()
+                        isAsking = false
+                    }
+                } label: { Text("settings.thresholds.allow") }
+                .buttonStyle(.secondaryAction)
+                .disabled(isAsking)
+                .padding(.top, 2)
+            }
+        }
+        .task { status = await ThresholdNotifier.authorisation() }
+    }
+
+    private var state: LocalizedStringResource {
+        guard isUnlocked else { return "settings.thresholds.locked" }
+        return switch status {
+        case .authorized, .provisional, .ephemeral: "settings.thresholds.on"
+        case .denied: "settings.thresholds.denied"
+        default: "settings.thresholds.off"
+        }
+    }
+
+    private var note: LocalizedStringResource {
+        guard isUnlocked else { return "settings.thresholds.lockedNote" }
+        return switch status {
+        case .authorized, .provisional, .ephemeral: "settings.thresholds.onNote"
+        case .denied: "settings.thresholds.deniedNote"
+        default: "settings.thresholds.offNote"
+        }
     }
 }

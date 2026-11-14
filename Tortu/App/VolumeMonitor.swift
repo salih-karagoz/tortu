@@ -1,4 +1,5 @@
 import Foundation
+import MonitorKit
 import Observation
 import ScanCore
 
@@ -66,6 +67,33 @@ final class VolumeMonitor {
     /// the background cadence. Cheap: one `statfs`.
     private let foregroundInterval: Duration = .seconds(30)
 
+    /// Whether the user asked for measurement to slow down on battery.
+    ///
+    /// Read from the defaults rather than from `Preferences`, the way the
+    /// cadence already is: the monitor starts before the window exists and
+    /// must not depend on it.
+    static let batteryKey = "throttleOnBattery"
+
+    private var throttlesOnBattery: Bool {
+        AppDefaults.store.object(forKey: Self.batteryKey) == nil
+            ? true
+            : AppDefaults.store.bool(forKey: Self.batteryKey)
+    }
+
+    private let power = PowerSampler()
+
+    /// Whether the machine is running off its own battery right now.
+    private(set) var isOnBattery = false
+
+    /// How long to wait before the next reading.
+    ///
+    /// The setting says "slow to once an hour on battery", so on battery it
+    /// is once an hour. A reading is one `statfs` and costs almost nothing,
+    /// but a setting that says it changes something has to change it.
+    private var interval: Duration {
+        isOnBattery && throttlesOnBattery ? .seconds(3600) : foregroundInterval
+    }
+
     var freeSpaceText: String {
         stats.map { Figure.bytes($0.available).joined } ?? "—"
     }
@@ -105,6 +133,7 @@ final class VolumeMonitor {
     }
 
     func refresh() {
+        isOnBattery = power.sample().source == .battery
         do {
             stats = try VolumeStats.forHomeVolume()
             lastUpdate = .now
@@ -118,7 +147,7 @@ final class VolumeMonitor {
         refresh()
         while !Task.isCancelled {
             do {
-                try await Task.sleep(for: foregroundInterval)
+                try await Task.sleep(for: interval)
             } catch {
                 return
             }

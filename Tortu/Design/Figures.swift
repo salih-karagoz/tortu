@@ -58,6 +58,66 @@ enum Figure {
         )
     }
 
+    /// A quantity of memory.
+    ///
+    /// The one place this application counts in powers of two. A disk is
+    /// sold, formatted and reported by Finder in powers of ten, so that is
+    /// how Tortu shows it everywhere else; memory is sold and reported by
+    /// the system in powers of two, and a machine with sixteen gigabytes of
+    /// it must not be told by this screen that it has 17,2.
+    static func memory(_ count: ByteCount, fractionDigits: Int? = nil) -> Measure {
+        let raw = Double(count.rawValue)
+        let magnitude = abs(raw)
+        guard magnitude >= 1024 else {
+            return Measure(value: integer(raw), unit: units[0])
+        }
+        var scaled = magnitude
+        var index = 0
+        while scaled >= 1024, index < units.count - 1 {
+            scaled /= 1024
+            index += 1
+        }
+        if raw < 0 { scaled = -scaled }
+        let digits = fractionDigits ?? (index <= 1 ? 0 : 1)
+        return Measure(value: decimal(scaled, digits: digits), unit: units[index])
+    }
+
+    /// A rate as a figure and a unit, e.g. `12,3` and `MB/sn`.
+    ///
+    /// The unit carries the `/sn` so that a reading can never be mistaken for
+    /// a total, which on a screen where totals and rates sit next to each
+    /// other is the whole difference between four megabytes and four
+    /// megabytes a second.
+    static func perSecond(_ bytesPerSecond: Double) -> Measure {
+        let safe = bytesPerSecond.isFinite ? max(bytesPerSecond, 0) : 0
+        let measure = bytes(ByteCount(Int64(safe.rounded())))
+        return Measure(
+            value: measure.value,
+            unit: "\(measure.unit)/\(String(localized: "unit.second"))"
+        )
+    }
+
+    /// A number of things a second, e.g. the wakeups a process is costing.
+    static func rate(_ perSecond: Double, digits: Int = 0) -> Measure {
+        let safe = perSecond.isFinite ? max(perSecond, 0) : 0
+        return Measure(
+            value: decimal(safe, digits: digits),
+            unit: "/\(String(localized: "unit.second"))"
+        )
+    }
+
+    /// A percentage with a decimal where one is worth having.
+    ///
+    /// A processor reading of `0,4 %` and one of `0 %` are different facts,
+    /// and rounding the first to the second loses the only thing a quiet
+    /// machine has to say.
+    static func percent(_ fraction: Double, digits: Int) -> String {
+        guard fraction.isFinite else { return "—" }
+        return fraction
+            .formatted(.percent.precision(.fractionLength(digits)))
+            .replacingOccurrences(of: "-", with: "−")
+    }
+
     /// Gigabytes per day as a bare figure, for the growth bars, which already
     /// carry their unit in the section heading.
     static func gigabytesPerDay(_ bytesPerDay: Double) -> String {

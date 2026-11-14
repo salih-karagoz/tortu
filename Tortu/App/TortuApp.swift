@@ -18,6 +18,15 @@ struct TortuApp: App {
     /// there is no licence, or it fails to verify, the app runs as the free
     /// build rather than refusing to start.
     private let entitlements: any EntitlementProviding = {
+        #if DEBUG
+        // Snapshot mode never reads the real licence: a capture of a paid
+        // screen must not depend on which licence this machine happens to
+        // hold, and a capture of the locked state would be impossible on a
+        // machine that holds one.
+        if DebugSnapshot.directory != nil {
+            return DebugSnapshot.showsFree ? FreeEntitlements() : FixedEntitlements.everything
+        }
+        #endif
         guard let verifier = try? LicenseVerifier(
             publicKeyRepresentation: TortuKeys.licensePublicKey
         ) else {

@@ -25,7 +25,9 @@ struct FindersView: View {
             if showsFooter { footer }
         }
         .onAppear {
-            controller.root = preferences.scanRoots.first ?? NSHomeDirectory()
+            if !controller.hasChosenRoot {
+                controller.root = preferences.scanRoots.first ?? NSHomeDirectory()
+            }
             // The first tool is a directory walk and starts on its own. The
             // other two are not: hashing every file to find duplicates, and
             // measuring every application, are both expensive enough that

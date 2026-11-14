@@ -12,7 +12,14 @@ jobs:
       - uses: actions/checkout@v4
 
       - name: Select Xcode
-        run: sudo xcode-select -s /Applications/Xcode_16.app
+        # Pinned when one is there, newest otherwise: the runner image stops
+        # shipping a given version eventually, and a hard pin turns that into
+        # a red build with nothing wrong in the code.
+        run: |
+          if [ -d /Applications/Xcode_16.app ]; then
+            sudo xcode-select -s /Applications/Xcode_16.app
+          fi
+          xcodebuild -version
 
       - name: Test packages
         # The packages carry the logic and need no signing identity, so this

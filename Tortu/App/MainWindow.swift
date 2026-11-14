@@ -1,3 +1,5 @@
+import Entitlements
+import MonitorKit
 import ScanCore
 import SwiftData
 import SwiftUI
@@ -5,13 +7,14 @@ import SwiftUI
 /// Named `SidebarSection` rather than `Section` so it does not shadow
 /// SwiftUI's own `Section` anywhere else in the module.
 enum SidebarSection: String, CaseIterable, Identifiable {
-    case panel, cleanup, explorer, finders, history, settings
+    case panel, activity, cleanup, explorer, finders, history, settings
 
     var id: String { rawValue }
 
     var title: LocalizedStringResource {
         switch self {
         case .panel: "sidebar.panel"
+        case .activity: "sidebar.activity"
         case .cleanup: "sidebar.cleanup"
         case .explorer: "sidebar.explorer"
         case .finders: "sidebar.finders"
@@ -24,6 +27,8 @@ enum SidebarSection: String, CaseIterable, Identifiable {
 struct MainWindow: View {
     @Environment(VolumeMonitor.self) private var monitor
     @Environment(CleanupController.self) private var cleanup
+    @Environment(Preferences.self) private var preferences
+    @Environment(\.entitlements) private var entitlements
     @Environment(\.modelContext) private var context
     @Binding var selection: SidebarSection
 
@@ -35,6 +40,9 @@ struct MainWindow: View {
     // held a level up, because the sidebar prints its rule count.
     @State private var scan = ScanController()
     @State private var finders = FindersController()
+    // The live instrument keeps minutes of trace behind it, and it stops
+    // reading the moment its screen goes away. Both belong to the window.
+    @State private var activity = ActivityController()
 
     // The other two screens have no controller to keep their place in, and
     // their place is small enough not to be worth inventing one for.
@@ -77,6 +85,18 @@ struct MainWindow: View {
         .onChange(of: monitor.lastUpdate) { _, _ in
             guard let stats = monitor.stats else { return }
             HistoryRecorder(context: context).recordVolume(stats)
+            // Every reading is also the moment to ask whether a threshold
+            // the user set has been crossed. Nothing is sent without
+            // permission, and permission is asked for in Settings.
+            guard entitlements.isUnlocked(.backgroundMonitoring) else { return }
+            let names = Dictionary(
+                cleanup.rules.map { ($0.id, $0.name.resolved()) },
+                uniquingKeysWith: { first, _ in first }
+            )
+            Task {
+                await ThresholdNotifier(context: context, preferences: preferences)
+                    .check(stats, names: names)
+            }
         }
         #if DEBUG
         .task {
@@ -111,6 +131,7 @@ struct MainWindow: View {
                     case .cleanup: cleanup.analyse()
                     case .explorer: scan.start()
                     case .finders: finders.run()
+                    case .activity: activity.start()
                     default: break
                     }
                 }
@@ -123,8 +144,10 @@ struct MainWindow: View {
     private var detail: some View {
         switch selection {
         case .panel: PanelView()
+        case .activity:
+            ActivityView(controller: activity, onOpenSettings: { selection = .settings })
         case .cleanup:
-            CleanupView(filter: $cleanupFilter, onOpenRule: { _ in })
+            CleanupView(filter: $cleanupFilter)
         case .explorer:
             ExplorerView(controller: scan, onOpenRule: { selection = .cleanup })
         case .finders:
@@ -145,6 +168,7 @@ struct MainWindow: View {
 private struct Sidebar: View {
     @Environment(VolumeMonitor.self) private var monitor
     @Environment(CleanupController.self) private var cleanup
+    @Environment(\.entitlements) private var entitlements
     @Binding var selection: SidebarSection
 
     var body: some View {
@@ -167,8 +191,7 @@ private struct Sidebar: View {
                 NavRow(
                     section: section,
                     isActive: selection == section,
-                    trailing: section == .cleanup && cleanup.ruleCount > 0
-                        ? Figure.count(cleanup.ruleCount) : nil
+                    trailing: trailing(for: section)
                 ) {
                     selection = section
                 }
@@ -180,6 +203,21 @@ private struct Sidebar: View {
         .frame(width: Metric.sidebarWidth)
         .padding(.bottom, 18)
         .overlay(alignment: .trailing) { Hairline(axis: .vertical) }
+    }
+
+    /// The rule count beside Cleanup, and a word beside anything a licence
+    /// is needed for. A paid section is shown and marked rather than hidden:
+    /// a row that appears only after buying cannot be decided about.
+    private func trailing(for section: SidebarSection) -> String? {
+        switch section {
+        case .cleanup:
+            cleanup.ruleCount > 0 ? Figure.count(cleanup.ruleCount) : nil
+        case .activity:
+            entitlements.isUnlocked(.liveActivity)
+                ? nil : String(localized: "badge.paid").displayUppercase
+        default:
+            nil
+        }
     }
 
     private var footer: some View {

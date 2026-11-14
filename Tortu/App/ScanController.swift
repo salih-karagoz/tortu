@@ -53,6 +53,16 @@ final class ScanController {
 
     private var task: Task<Void, Never>?
 
+    init() {
+        #if DEBUG
+        if let root = DebugSnapshot.root {
+            rootPath = root
+            // Marked as chosen so the screen does not put the setting back.
+            hasChosenRoot = true
+        }
+        #endif
+    }
+
     var isScanning: Bool {
         if case .scanning = phase { return true }
         return false
@@ -87,16 +97,19 @@ final class ScanController {
         selected = nil
         let path = rootPath
 
+        // Progress arrives from whichever thread is walking, so each report
+        // hops back to the main actor before touching state. Declared here
+        // rather than inside the task, which already captures self strongly
+        // and would make the weak capture a promise it does not keep.
+        let report: @Sendable (ScanProgress) -> Void = { [weak self] progress in
+            Task { @MainActor in
+                guard let self, self.isScanning else { return }
+                self.phase = .scanning(progress)
+            }
+        }
+
         task = Task {
             let scanner = DirectoryScanner()
-            // Progress arrives from whichever thread is walking, so each
-            // report hops back to the main actor before touching state.
-            let report: @Sendable (ScanProgress) -> Void = { [weak self] progress in
-                Task { @MainActor in
-                    guard let self, self.isScanning else { return }
-                    self.phase = .scanning(progress)
-                }
-            }
             do {
                 let result = try await scanner.scan(rootPath: path, onProgress: report)
                 guard !Task.isCancelled else { return }

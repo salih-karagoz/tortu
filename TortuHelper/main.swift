@@ -14,15 +14,12 @@ final class ListenerDelegate: NSObject, NSXPCListenerDelegate {
         _ listener: NSXPCListener,
         shouldAcceptNewConnection connection: NSXPCConnection
     ) -> Bool {
-        // Checked by the system before a single message is delivered. A
-        // connection from anything else never reaches the service.
-        do {
-            try connection.setCodeSigningRequirement(HelperIdentity.clientRequirement)
-        } catch {
-            NSLog("tortu-helper: refusing connection, requirement rejected: %@",
-                  String(describing: error))
-            return false
-        }
+        // Checked by the system before a single message is delivered, and a
+        // connection from anything else never reaches the service. The call
+        // reports nothing: a requirement that cannot be satisfied invalidates
+        // the connection rather than returning an error here, so there is no
+        // failure branch to write and none to test.
+        connection.setCodeSigningRequirement(HelperIdentity.clientRequirement)
 
         connection.exportedInterface = NSXPCInterface(with: TortuHelperProtocol.self)
         connection.exportedObject = service

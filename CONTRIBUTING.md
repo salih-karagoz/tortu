@@ -2,10 +2,12 @@
 
 ## The open core model, stated plainly
 
-Tortu is open source under Apache-2.0. There is also a paid build that adds
-history charts, background monitoring, scheduled profiles, a duplicate finder
-and an application uninstaller. Contributions to this repository may end up in
-that build, and you should know that before you send one.
+Tortu is open source under Apache-2.0. There is also a paid build, and the
+capabilities it adds are listed here in full rather than summarised: history
+charts, growth charts, background monitoring and its threshold notifications,
+scheduled profiles, the duplicate finder, the application uninstaller, rule
+sync, and the live activity instrument. Contributions to this repository may
+end up in that build, and you should know that before you send one.
 
 What is *not* sold, by policy: the scanner, the rules engine, every rule that
 deletes files, and the privileged helper. Code that runs as root or removes a

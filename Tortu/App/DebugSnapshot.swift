@@ -175,6 +175,33 @@ enum DebugSnapshot {
         ProcessInfo.processInfo.environment["TORTU_SNAPSHOT_EXPAND"] == "1"
     }
 
+    /// A folder for the Explorer and the Finders to look at instead of the
+    /// user's own home.
+    ///
+    /// The screenshots in the README are captures of a real machine, and a
+    /// home folder names its owner in the breadcrumb and their work in every
+    /// row. Pointing the two walking screens at a neutral directory keeps the
+    /// figures real without publishing whose they are.
+    static var root: String? {
+        ProcessInfo.processInfo.environment["TORTU_SNAPSHOT_ROOT"].flatMap {
+            $0.isEmpty ? nil : $0
+        }
+    }
+
+    /// Which measure the live instrument opens on, so that each of its six
+    /// can be captured in a run of its own.
+    static var activitySubject: String? {
+        ProcessInfo.processInfo.environment["TORTU_SNAPSHOT_SUBJECT"]
+    }
+
+    /// Whether to capture the paid screens as a free build sees them.
+    ///
+    /// The licence is read from the real file otherwise, which would make a
+    /// capture of the locked state impossible on a machine that has one.
+    static var showsFree: Bool {
+        ProcessInfo.processInfo.environment["TORTU_SNAPSHOT_FREE"] == "1"
+    }
+
     /// Whether to capture the screens while they are still working, which
     /// is the only way to see the waiting state at all: it is gone by the
     /// time a walk of a home folder has finished.
@@ -228,7 +255,12 @@ enum DebugSnapshot {
                 select(section)
                 resize()
                 if capturesBusy { prepare(section) }
-                try? await Task.sleep(for: .milliseconds(capturesBusy ? 450 : 700))
+                // The live instrument has nothing to draw until its second
+                // reading, and a trace worth looking at until its third, so
+                // it is given time the other screens do not need.
+                let pause = section == .activity && !capturesBusy
+                    ? 2_800 : (capturesBusy ? 450 : 700)
+                try? await Task.sleep(for: .milliseconds(pause))
                 let suffix = appearance == .darkAqua ? "-dark" : ""
                 write("\(section.rawValue)\(suffix)")
             }

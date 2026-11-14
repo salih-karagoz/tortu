@@ -16,7 +16,6 @@ struct CleanupView: View {
     /// Held by the window rather than here, so that which rules the list is
     /// showing is still what the user chose when they come back to it.
     @Binding var filter: RuleFilter
-    let onOpenRule: (String) -> Void
 
     @Environment(CleanupController.self) private var controller
     @Environment(\.modelContext) private var context

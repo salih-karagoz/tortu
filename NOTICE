@@ -1,7 +1,25 @@
 Tortu
-Copyright 2026 Muhammed Salih Karagöz
+Copyright 2026 Muhammed Salih Karagöz <https://muhammedsalihkaragoz.com>
 
 This product includes software developed as part of the Tortu project
-(https://github.com/muhammedsalihkaragoz/tortu).
+(https://github.com/salih-karagoz/tortu).
 
 Licensed under the Apache License, Version 2.0. See LICENSE for the full text.
+
+--------------------------------------------------------------------------------
+Third-party components bundled with the application
+--------------------------------------------------------------------------------
+
+Space Grotesk
+Copyright 2020 The Space Grotesk Project Authors
+(https://github.com/floriankarsten/space-grotesk)
+Licensed under the SIL Open Font License, Version 1.1.
+Full text: Tortu/Resources/Fonts/OFL-SpaceGrotesk.txt
+
+Inter
+Copyright 2020 The Inter Project Authors (https://github.com/rsms/inter)
+Licensed under the SIL Open Font License, Version 1.1.
+Full text: Tortu/Resources/Fonts/OFL-Inter.txt
+
+Neither font is modified. Both are used under the terms of the OFL, which
+permits bundling with and distribution inside an application.

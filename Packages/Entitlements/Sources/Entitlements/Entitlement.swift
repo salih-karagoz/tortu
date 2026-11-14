@@ -14,6 +14,11 @@ public enum Entitlement: String, Sendable, CaseIterable, Codable {
     case duplicateFinder
     case applicationUninstaller
     case ruleSync
+    /// The live instrument: processor, memory, processes, energy, disk and
+    /// network, measured as they happen rather than once a quarter of an
+    /// hour. Nothing it does removes anything, which is why it is one of the
+    /// surfaces that may be sold.
+    case liveActivity
 }
 
 /// Answers whether a capability is unlocked.
