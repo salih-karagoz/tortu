@@ -21,6 +21,10 @@ Use the Developer Certificate of Origin. Add a sign-off line:
 git commit -s -m "Add a rule for the SwiftPM build cache"
 ```
 
+CI checks every commit in a pull request for a sign-off line matching that
+commit's own author, and says which commit is missing one. `git rebase
+--signoff main` fixes a branch that was written without it.
+
 There is no separate contributor licence agreement. Apache-2.0 section 5
 already places your contribution under the project's licence.
 

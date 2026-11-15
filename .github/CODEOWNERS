@@ -1,0 +1,16 @@
+# Every change needs the owner's review. The rule that enforces this lives in
+# the repository's ruleset; this file only says who "code owner" means.
+#
+# The paths below are listed separately although the catch-all already covers
+# them. They are the parts that delete files or run as root, and naming them
+# here means a reviewer reading a diff can see at a glance that a change
+# touched one.
+
+*                                                   @salih-karagoz
+
+/TortuHelper/                                       @salih-karagoz
+/Packages/SafetyKit/                                @salih-karagoz
+/Packages/CleanerKit/                               @salih-karagoz
+/Packages/RulesEngine/Sources/RulesEngine/Resources/ @salih-karagoz
+/.github/                                           @salih-karagoz
+/scripts/                                           @salih-karagoz

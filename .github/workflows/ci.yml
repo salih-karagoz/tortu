@@ -9,7 +9,7 @@ jobs:
   test:
     runs-on: macos-15
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v7
 
       - name: Select Xcode
         # Pinned when one is there, newest otherwise: the runner image stops
@@ -36,7 +36,7 @@ jobs:
     runs-on: macos-15
     if: github.event_name == 'push'
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v7
       - run: brew install xcodegen
       - run: xcodegen generate
       - name: Build unsigned
@@ -48,3 +48,40 @@ jobs:
             CODE_SIGN_IDENTITY="-" CODE_SIGN_STYLE=Manual \
             DEVELOPMENT_TEAM="" OTHER_CODE_SIGN_FLAGS="" \
             build
+
+  # CONTRIBUTING asks every commit to carry a Developer Certificate of Origin
+  # sign-off. Until now nothing checked it, which made it a rule that would be
+  # broken by the first person who read past it. This checks, and it is its own
+  # job so a missing sign-off reads as a missing sign-off rather than as a
+  # failing test.
+  sign-off:
+    runs-on: ubuntu-latest
+    if: github.event_name == 'pull_request'
+    steps:
+      - uses: actions/checkout@v7
+        with:
+          fetch-depth: 0
+
+      - name: Every commit signed off by its author
+        env:
+          # Through the environment rather than inlined: anything from the
+          # event payload is written by whoever opened the pull request, and
+          # inlining it would run it.
+          BASE: ${{ github.event.pull_request.base.sha }}
+          HEAD: ${{ github.event.pull_request.head.sha }}
+        run: |
+          missing=0
+          for commit in $(git rev-list "$BASE".."$HEAD"); do
+            author=$(git show -s --format='%an <%ae>' "$commit")
+            if git show -s --format='%B' "$commit" \
+              | grep -qiF "Signed-off-by: $author"; then
+              continue
+            fi
+            echo "::error::$(git show -s --format='%h %s' "$commit") is not signed off by $author"
+            missing=1
+          done
+          if [ "$missing" -ne 0 ]; then
+            echo "Add the sign-off with: git commit -s --amend  (or git rebase --signoff)"
+            exit 1
+          fi
+          echo "Every commit is signed off."
