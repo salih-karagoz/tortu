@@ -14,7 +14,7 @@ just what is large, but what keeps coming back.
 [![Platform](https://img.shields.io/badge/macOS-14%2B-111111?style=flat-square)](#building)
 [![Swift](https://img.shields.io/badge/Swift-6.0-111111?style=flat-square)](https://swift.org)
 [![CI](https://img.shields.io/github/actions/workflow/status/salih-karagoz/tortu/ci.yml?branch=main&style=flat-square&label=CI)](../../actions/workflows/ci.yml)
-[![Tests](https://img.shields.io/badge/tests-147-111111?style=flat-square)](#testing)
+[![Tests](https://img.shields.io/badge/tests-153-111111?style=flat-square)](#testing)
 
 </div>
 
